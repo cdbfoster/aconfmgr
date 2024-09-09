@@ -49,7 +49,7 @@ aconfmgr_action_args=()
 # Can be appended to using the IgnorePath helper.
 ignore_paths=(
     '/dev'
-    '/home'
+    # '/home'
     '/media'
     '/mnt'
     '/proc'
