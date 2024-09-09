@@ -1645,6 +1645,50 @@ function ParanoidConfirm() {
 	fi
 }
 
+function ConfirmSkipAbort() {
+	local detail_func="$1"
+
+	if [[ $prompt_mode == never ]]
+	then
+		return
+	fi
+
+	skip=false
+
+	while true
+	do
+		if [[ -n "$detail_func" ]]
+		then
+			Log 'Proceed? [Y/n(skip)/a(abort)/d] '
+		else
+			Log 'Proceed? [Y/n(skip)/a(abort)] '
+		fi
+		read -r -n 1 answer < /dev/tty
+		echo 1>&2
+		case "$answer" in
+			Y|y|'')
+				return
+				;;
+			N|n)
+				skip=true
+				Log '%s\n' "$(Color R "Skipping")"
+				return
+				;;
+			A|a)
+				Log '%s\n' "$(Color R "User abort")"
+				Exit 1
+				;;
+			D|d)
+				$detail_func
+				continue
+				;;
+			*)
+				continue
+				;;
+		esac
+	done
+}
+
 ####################################################################################################
 
 log_indent=:

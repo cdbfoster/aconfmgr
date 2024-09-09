@@ -250,11 +250,14 @@ function AconfApply() {
 		LogEnter 'Unpinning %s unknown packages.\n' "$(Color G ${#unknown_packages[@]})"
 
 		function Details() { Log 'Unpinning (setting install reason to '\''as dependency'\'') the following packages:%s\n' "$(Color M " %q" "${unknown_packages[@]}")" ; }
-		Confirm Details
+		ConfirmSkipAbort Details
 
-		Print0Array unknown_packages | sudo xargs -0 "$PACMAN" --database --asdeps
+		if [ $skip = false ]
+		then
+			Print0Array unknown_packages | sudo xargs -0 "$PACMAN" --database --asdeps
+			modified=y
+		fi
 
-		modified=y
 		LogLeave
 	fi
 
@@ -603,44 +606,48 @@ function AconfApply() {
 			Log 'Deleting the following files:\n'
 			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${files_to_delete[@]}"
 		}
-		Confirm Details
+		ConfirmSkipAbort Details
 
-		local -A parents=()
+		if [ $skip = true ]
+		then
+			local -A parents=()
 
-		# Iterate backwards, so that inner files/directories are
-		# deleted before their parent ones.
-		local i
-		for (( i=${#files_to_delete[@]}-1 ; i >= 0 ; i-- ))
-		do
-			local file="${files_to_delete[$i]}"
-
-			if [[ -n "${parents[$file]+x}" && -n "$(sudo find "$file" -maxdepth 0 -type d -not -empty 2>/dev/null)" ]]
-			then
-				# Ignoring paths under a directory can cause us to
-				# want to remove a directory which will in fact not be
-				# empty, and actually contain ignored files. So, skip
-				# deleting empty directories which are parents of
-				# previously-deleted objects.
-				LogEnter 'Skipping non-empty directory %s.\n' "$(Color C "%q" "$file")"
-			else
-				LogEnter 'Deleting %s...\n' "$(Color C "%q" "$file")"
-				ParanoidConfirm ''
-				sudo rm --dir "$file"
-			fi
-
-			local prop
-			for prop in "${all_file_property_kinds[@]}"
+			# Iterate backwards, so that inner files/directories are
+			# deleted before their parent ones.
+			local i
+			for (( i=${#files_to_delete[@]}-1 ; i >= 0 ; i-- ))
 			do
-				local key="$file:$prop"
-				unset "system_file_props[\$key]"
+				local file="${files_to_delete[$i]}"
+
+				if [[ -n "${parents[$file]+x}" && -n "$(sudo find "$file" -maxdepth 0 -type d -not -empty 2>/dev/null)" ]]
+				then
+					# Ignoring paths under a directory can cause us to
+					# want to remove a directory which will in fact not be
+					# empty, and actually contain ignored files. So, skip
+					# deleting empty directories which are parents of
+					# previously-deleted objects.
+					LogEnter 'Skipping non-empty directory %s.\n' "$(Color C "%q" "$file")"
+				else
+					LogEnter 'Deleting %s...\n' "$(Color C "%q" "$file")"
+					ParanoidConfirm ''
+					sudo rm --dir "$file"
+				fi
+
+				local prop
+				for prop in "${all_file_property_kinds[@]}"
+				do
+					local key="$file:$prop"
+					unset "system_file_props[\$key]"
+				done
+
+				parents["$(dirname "$file")"]=y
+
+				LogLeave ''
 			done
 
-			parents["$(dirname "$file")"]=y
+			modified=y
+		fi
 
-			LogLeave ''
-		done
-
-		modified=y
 		LogLeave
 	fi
 
