@@ -608,7 +608,7 @@ function AconfApply() {
 		}
 		ConfirmSkipAbort Details
 
-		if [ $skip = true ]
+		if [ $skip = false ]
 		then
 			local -A parents=()
 
