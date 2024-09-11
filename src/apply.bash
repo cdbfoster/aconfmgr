@@ -764,20 +764,23 @@ function AconfApply() {
 			Print0Array changed_file_props     | LogFileProps "Updating"
 			Print0Array system_only_file_props | LogFileProps "Clearing"
 		}
-		Confirm Details
+		ConfirmSkipAbort Details
 
-		local key
-		( Print0Array config_only_file_props ; Print0Array changed_file_props ; Print0Array system_only_file_props ) | \
-			while read -r -d $'\0' key
-			do
-				local kind="${key##*:}"
-				local file="${key%:*}"
-				local value="${output_file_props[$key]:-}"
+		if [ $skip = false ]
+		then
+			local key
+			( Print0Array config_only_file_props ; Print0Array changed_file_props ; Print0Array system_only_file_props ) | \
+				while read -r -d $'\0' key
+				do
+					local kind="${key##*:}"
+					local file="${key%:*}"
+					local value="${output_file_props[$key]:-}"
 
-				ApplyFileProperty "$kind" "$value" "$file"
-			done
+					ApplyFileProperty "$kind" "$value" "$file"
+				done
+			modified=y
+		fi
 
-		modified=y
 		LogLeave
 	fi
 
