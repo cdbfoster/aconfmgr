@@ -330,6 +330,23 @@ function IgnorePath() {
 }
 
 #
+# NegateIgnorePath PATH
+#
+# Adds the specified path as an explicit exception to ignored paths.
+# Example:
+#   # Ignores everything in the home directory.
+#   IgnorePath '/home/myuser/*'
+#   # Explicitly unignores the .bashrc file in the home directory.
+#   NegateIgnorePath '/home/myuser/.bashrc'
+#
+# The argument should be a shell pattern, e.g. '/etc/foo/*'.
+#
+
+function NegateIgnorePath() {
+	negate_ignore_paths+=("$@")
+}
+
+#
 # AddFileContentFilter PATTERN FUNCTION
 #
 # Adds a filter for paths matching the given PATTERN (bash syntax).

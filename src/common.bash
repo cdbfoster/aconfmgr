@@ -65,6 +65,10 @@ ignore_paths=(
     # '/var/spool'
 )
 
+# Explicit exceptions to the ignored paths.
+# Can be appended to using the NegateIgnorePath helper.
+negate_ignore_paths=()
+
 # These files must be installed before anything else,
 # because they affect or are required for what follows.
 # shellcheck disable=SC2034
@@ -279,6 +283,22 @@ function AconfCompileSystem() {
 	local -a ignore_args
 	AconfCreateFindIgnoreArgs ignore_args "${ignore_paths[@]}"
 
+	# Add all ancestors of the explicit ignore exceptions so we prevent
+	# pruning of an ancestor that contains an ignore exception.
+	local negate_ignore_path
+	for negate_ignore_path in "${negate_ignore_paths[@]}"
+	do
+		local path="${negate_ignore_path%/*}"
+		while [[ -n "$path" ]]
+		do
+			negate_ignore_paths+=($path)
+			path=${path%/*}
+		done
+	done
+
+	local -a negate_ignore_args
+	AconfCreateFindIgnoreArgs negate_ignore_args "${negate_ignore_paths[@]}"
+
 	LogEnter 'Enumerating owned files...\n'
 	mkdir --parents "$tmp_dir"
 	( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/owned-files
@@ -330,6 +350,8 @@ BEGIN {
 			 \(										\
 			 	\(									\
 					"${ignore_args[@]}"				\
+				\) -and -not \(						\
+					"${negate_ignore_args[@]}"		\
 				\)									\
 				-printf 'I' -print0 -prune			\
 			\)										\
