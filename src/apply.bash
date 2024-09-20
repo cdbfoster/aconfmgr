@@ -788,6 +788,24 @@ function AconfApply() {
 
 	LogLeave # Configuring files
 
+	#
+	# Custom apply steps
+	#
+
+	LogEnter 'Running custom apply steps...\n'
+
+	local step_modified
+	for step in "${custom_apply_steps[@]}"
+	do
+		step_modified="$($step)"
+		if [[ $step_modified == y ]]
+		then
+			modified=y
+		fi
+	done
+
+	LogLeave # Running custom apply steps
+
 	if [[ $modified == n ]]
 	then
 		LogLeave 'Done (%s).\n' "$(Color G "system state unchanged")"

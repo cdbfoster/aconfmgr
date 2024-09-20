@@ -367,4 +367,20 @@ function AddFileContentFilter() {
 	file_content_filters[$pattern]=$function
 }
 
+#
+# AddCustomSaveStep FUNCTION
+#
+
+function AddCustomSaveStep() {
+	custom_save_steps+=("$@")
+}
+
+#
+# AddCustomApplyStep FUNCTION
+#
+
+function AddCustomApplyStep() {
+	custom_apply_steps+=("$@")
+}
+
 : # include in coverage

@@ -267,6 +267,24 @@ function AconfSave() {
 
 	LogLeave # Registering file properties
 
+	#
+	# Custom save steps
+	#
+
+	LogEnter 'Running custom save steps...\n'
+
+	local step_modified
+	for step in "${custom_save_steps[@]}"
+	do
+		step_modified="$($step)"
+		if [[ $step_modified == y ]]
+		then
+			modified=y
+		fi
+	done
+
+	LogLeave # Running custom save steps
+
 	if [[ $modified == n ]]
 	then
 		LogLeave 'Done (%s).\n' "$(Color G "configuration unchanged")"

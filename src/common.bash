@@ -98,6 +98,9 @@ warn_tmp_df_threshold=$((1024*1024))  # Warn on error if free space in $tmp_dir 
 
 makepkg_user=nobody # when running as root
 
+custom_save_steps=()
+custom_apply_steps=()
+
 ####################################################################################################
 
 function LogLeaveDirStats() {
